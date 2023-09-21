@@ -1,6 +1,16 @@
+<script setup>
+import {
+  ionAlbums,
+  ionCaretForwardCircle,
+  ionMusicalNotes,
+} from '@quasar/extras/ionicons-v7'
+import ButtonIcon from './ButtonIcon.vue'
+import 'virtual:svg-icons-register'
+</script>
+
 <template>
   <div class="bar-container">
-    <div class="navigation-player"></div>
+    <div class="navigation-player" />
     <div class="navigation-links">
       <div class="navlink-items">
         <!-- TODO: active nav -->
@@ -38,14 +48,6 @@
     </div>
   </div>
 </template>
-<script setup>
-import {
-  ionCaretForwardCircle,
-  ionAlbums,
-  ionMusicalNotes,
-} from "@quasar/extras/ionicons-v7";
-import ButtonIcon from "./ButtonIcon.vue";
-</script>
 <style>
 /* .navigation-player {
   position: fixed;

@@ -1,36 +1,40 @@
-<template>
-  <svg :class="svgClass" aria-hidden="true">
-    <use :xlink:href="iconName" />
-  </svg>
-</template>
+<!-- svg 全局组件封裝 -->
+<script setup lang="ts">
+import { computed } from 'vue'
 
-<script>
-export default {
-  name: 'SvgIcon',
-  props: {
-    iconClass: {
-      type: String,
-      required: true,
-    },
-    className: {
-      type: String,
-      default: '',
-    },
+const props = defineProps({
+  prefix: {
+    type: String,
+    default: '#icon-',
   },
-  computed: {
-    iconName() {
-      return `#icon-${this.iconClass}`;
-    },
-    svgClass() {
-      if (this.className) {
-        return 'svg-icon ' + this.className;
-      } else {
-        return 'svg-icon';
-      }
-    },
+  name: String,
+  className: {
+    type: String,
+    default: 'svg-icon',
   },
-};
+  color: {
+    type: String,
+    default: 'currentColor',
+  },
+  width: {
+    type: String,
+    default: '16px',
+  },
+  height: {
+    type: String,
+    default: '16px',
+  },
+})
+const svgClass = computed(() => props.className)
 </script>
+ 
+<template>
+  <div>
+    <svg :style="{ width, height }" aria-hidden="true" :class="svgClass">
+      <use :xlink:href="prefix + name" :fill="color" />
+    </svg>
+  </div>
+</template>
 
 <style scoped>
 .svg-icon {

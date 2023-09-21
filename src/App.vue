@@ -1,11 +1,9 @@
+<!-- eslint-disable n/prefer-global/process -->
 <!-- eslint-disable no-console -->
 <script setup>
 import { storeToRefs } from 'pinia'
-
 import { computed, onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-
-
 import useStore from './stores/store'
 import {
   isAccountLoggedIn as AccountLoggedIn,
@@ -46,13 +44,13 @@ const showNavbar = computed(() => route.name !== 'lastfmCallback')
 
 onMounted(() => {
   // TODO: Vue3 eventListener for vercel deploy
-  console.log(`APP onActivated test process:${process.env}`)
+  console.log('>APP onActivated test process:', process.env)
   window.addEventListener('keydown', handleKeydown)
   // TODO: fetch data
   // fetchData();
 })
 function handleKeydown(e) {
-  console.log('>handleKeydown', e)
+  // console.log('>handleKeydown', e)
   if (e.code === 'Space') {
     if (e.target.tagName === 'INPUT')
       return false
@@ -63,7 +61,7 @@ function handleKeydown(e) {
   }
 }
 function fetchData() {
-  // console.log("fetchData")
+  // console.log('fetchData')
   if (!isLooseLoggedIn.value)
     return
   console.log('!isLooseLoggedIn:', !isLooseLoggedIn.value)
@@ -88,6 +86,7 @@ function fetchData() {
   <!-- area for router-view and top-level components -->
 
   <div id="app">
+    <SvgIcon name="logo" width="30px" height="30px" />
     <RouterLink to="/">
       Home
     </RouterLink>
