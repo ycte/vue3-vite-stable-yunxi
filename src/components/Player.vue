@@ -1,12 +1,106 @@
+<script setup>
+import { storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import useStore from 'src/stores/store'
+import ButtonIcon from 'src/components/ButtonIcon.vue'
+import { goToListSource, hasListSource } from 'src/utils/playList'
+import { formatTrackTime } from 'src/utils/common'
+
+// import VueSlider from "vue-slider-component";
+// import '@/assets/css/slider.css';
+const store = useStore()
+const route = useRoute()
+const router = useRouter()
+const { player, settings, data } = storeToRefs(useStore())
+console.log('>storeToRefs test:', player.value.player, settings.value)
+const currentTrack = computed(() => player.value.player.currentTrack)
+console.log('>currentTrack test:', currentTrack.value)
+// console.log('>store write test:', store.player.player.volume)
+const volume = computed({
+  get() {
+    return player.value.player.volume
+  },
+  set(value) {
+    store.player.player.volume = value
+  },
+})
+const playing = computed(() => player.value.player.playing)
+const audioSource = computed(() => {
+  return player.value.player._howler?._src.includes('kuwo.cn')
+    ? '音源来自酷我音乐'
+    : ''
+})
+const showToast = store.showToast
+const likeATrack = store.likeATrack
+function playPrevTrack() {
+  player.value.player.playPrevTrack()
+}
+function playOrPause() {
+  // console.log(
+  //   "playOrPause",
+  //   currentTrack,
+  //   currentTrack.al && currentTrack.al.picUrl
+  // );
+  player.value.player.playOrPause()
+}
+function playNextTrack() {
+  if (player.value.player.isPersonalFM) 
+    player.value.player.playNextFMTrack()
+  else 
+    player.value.player.playNextTrack()
+  
+}
+
+function goToNextTracksPage() {
+  if (player.value.player.isPersonalFM)
+    return
+  route.name === 'next'
+    ? router.go(-1)
+    : router.push({ name: 'next' })
+}
+function hasList() {
+  return hasListSource()
+}
+function goToList() {
+  goToListSource()
+}
+function goToAlbum() {
+  if (player.value.player.currentTrack.al.id === 0)
+    return
+  router.push({
+    path: `/album/${player.value.player.currentTrack.al.id}`,
+  })
+}
+function goToArtist(id) {
+  router.push({ path: `/artist/${id}` })
+}
+function moveToFMTrash() {
+  player.value.player.moveToFMTrash()
+}
+function switchRepeatMode() {
+  player.value.player.switchRepeatMode()
+}
+function switchShuffle() {
+  player.value.player.switchShuffle()
+}
+function switchReversed() {
+  player.value.player.switchReversed()
+}
+function mute() {
+  player.value.player.mute()
+}
+</script>
+
 <template>
   <div class="player" @click="toggleLyrics">
     <div class="shade">
       <div
-        class="progress-bar"
+        class="progress-bar" 
         :class="{
-          nyancat: settings.nyancatStyle,
+          'nyancat': settings.nyancatStyle,
           'nyancat-stop': settings.nyancatStyle && !player.playing,
-        }"
+        }" 
         @click.stop
       >
         <!-- <vue-slider
@@ -26,53 +120,34 @@
       <div class="controls">
         <div class="playing">
           <div class="container" @click.stop>
-            <img
-              :src="currentTrack.al && currentTrack.al.picUrl"
-              loading="lazy"
-              @click="goToAlbum"
-            />
-            <div class="track-info" :title="audioSource">
-              <div
-                :class="['name', { 'has-list': hasList() }]"
-                @click="hasList() && goToList()"
-              >
+            <img :src="currentTrack.value.al && currentTrack.value.al.picUrl" loading="lazy" @click="goToAlbum">
+            <div class="track-info" :title="audioSource.value">
+              <div class="name" :class="[{ 'has-list': hasList() }]" @click="hasList() && goToList()">
                 {{ currentTrack.name }}
               </div>
               <div class="artist">
-                <span
-                  v-for="(ar, index) in currentTrack.ar"
-                  :key="ar.id"
-                  @click="ar.id && goToArtist(ar.id)"
-                >
-                  <span :class="{ ar: ar.id }"> {{ ar.name }} </span
-                  ><span v-if="index !== currentTrack.ar.length - 1">, </span>
+                <span v-for="(ar, index) in currentTrack.value.ar" :key="ar.id" @click="ar.id && goToArtist(ar.id)">
+                  <span :class="{ ar: ar.id }"> {{ ar.name }} </span><span v-if="index !== currentTrack.value.ar.length - 1">,
+                  </span>
                 </span>
               </div>
             </div>
             <div class="like-button">
-              <button-icon
-                :title="
-                  player.player.isCurrentTrackLiked
-                    ? $t('player.unlike')
-                    : $t('player.like')
-                "
-                @click="likeATrack(player.player.currentTrack.id)"
+              <ButtonIcon 
+                :title="player.value.player.isCurrentTrackLiked
+                  ? $t('player.unlike')
+                  : $t('player.like')
+                " @click="likeATrack(player.value.player.currentTrack.id)"
               >
-                <q-icon
-                  name="svguse:icons.svg#heart"
-                  v-show="!player.player.isCurrentTrackLiked"
-                />
-                <q-icon
-                  name="svguse:icons.svg#heart-solid"
-                  v-show="player.player.isCurrentTrackLiked"
-                />
-              </button-icon>
+                <!-- <q-icon name="svguse:icons.svg#heart" v-show="!player.player.isCurrentTrackLiked" /> -->
+                <!-- <q-icon name="svguse:icons.svg#heart-solid" v-show="player.player.isCurrentTrackLiked" /> -->
+              </ButtonIcon>
             </div>
           </div>
-          <div class="blank"></div>
+          <div class="blank" />
         </div>
         <div class="middle-control-buttons">
-          <div class="blank"></div>
+          <div class="blank" />
           <div class="container" @click.stop>
             <!-- <button-icon
             v-show="!player.isPersonalFM"
@@ -88,233 +163,20 @@
             @click="moveToFMTrash"
             ><svg-icon icon-class="thumbs-down"
           /></button-icon> -->
-            <button-icon
-              class="play"
-              :title="$t(player.playing ? 'player.pause' : 'player.play')"
-              @click="playOrPause"
-            >
-              <q-icon
-                :name="ionPause"
-                v-show="player.player.playing"
-                class="svg-icon"
-              ></q-icon>
-              <q-icon
-                :name="ionCaretForwardOutline"
-                v-show="!player.player.playing"
-                class="svg-icon"
-              ></q-icon>
-              <!-- <svg-icon :icon-class="player.playing ? 'pause' : 'play'" /> -->
-              <!-- go -->
-            </button-icon>
-            <button-icon :title="$t('player.next')" @click="playNextTrack">
-              <q-icon :name="ionPlayForward" class="svg-icon"></q-icon>
-            </button-icon>
+            <ButtonIcon class="play" :title="$t(player.value.player.playing ? 'player.pause' : 'player.play')" @click="playOrPause">
+              <!-- <q-icon :name="ionPause" v-show="player.player.playing" class="svg-icon"></q-icon> -->
+              <!-- <q-icon :name="ionCaretForwardOutline" v-show="!player.player.playing" class="svg-icon"></q-icon> -->
+            </ButtonIcon>
+            <ButtonIcon :title="$t('player.next')" @click="playNextTrack">
+              <!-- <q-icon :name="ionPlayForward" class="svg-icon"></q-icon> -->
+            </ButtonIcon>
           </div>
           <!-- <div class="blank"></div> -->
         </div>
-        <!-- <div class="right-control-buttons">
-        <div class="blank"></div>
-        <div class="container" @click.stop>
-          <button-icon
-            :title="$t('player.nextUp')"
-            :class="{
-              active: $route.name === 'next',
-              disabled: player.isPersonalFM,
-            }"
-            @click="goToNextTracksPage"
-            ><svg-icon icon-class="list"
-          /></button-icon>
-          <button-icon
-            :class="{
-              active: player.repeatMode !== 'off',
-              disabled: player.isPersonalFM,
-            }"
-            :title="
-              player.repeatMode === 'one'
-                ? $t('player.repeatTrack')
-                : $t('player.repeat')
-            "
-            @click="switchRepeatMode"
-          >
-            <svg-icon
-              v-show="player.repeatMode !== 'one'"
-              icon-class="repeat"
-            />
-            <svg-icon
-              v-show="player.repeatMode === 'one'"
-              icon-class="repeat-1"
-            />
-          </button-icon>
-          <button-icon
-            :class="{ active: player.shuffle, disabled: player.isPersonalFM }"
-            :title="$t('player.shuffle')"
-            @click="switchShuffle"
-            ><svg-icon icon-class="shuffle"
-          /></button-icon>
-          <button-icon
-            v-if="settings.enableReversedMode"
-            :class="{ active: player.reversed, disabled: player.isPersonalFM }"
-            :title="$t('player.reversed')"
-            @click="switchReversed"
-            ><svg-icon icon-class="sort-up"
-          /></button-icon>
-          <div class="volume-control">
-            <button-icon :title="$t('player.mute')" @click="mute">
-              <svg-icon v-show="volume > 0.5" icon-class="volume" />
-              <svg-icon v-show="volume === 0" icon-class="volume-mute" />
-              <svg-icon
-                v-show="volume <= 0.5 && volume !== 0"
-                icon-class="volume-half"
-              />
-            </button-icon>
-            <div class="volume-bar">
-              <vue-slider
-                v-model="volume"
-                :min="0"
-                :max="1"
-                :interval="0.01"
-                :drag-on-click="true"
-                :duration="0"
-                tooltip="none"
-                :dot-size="12"
-              ></vue-slider>
-            </div>
-          </div>
-
-          <button-icon
-            class="lyrics-button"
-            title="歌词"
-            style="margin-left: 12px"
-            @click="toggleLyrics"
-            ><svg-icon icon-class="arrow-up"
-          /></button-icon>
-        </div>
-      </div> -->
       </div>
     </div>
   </div>
 </template>
-
-<script>
-import { mapState, mapActions } from "pinia";
-// import '@/assets/css/slider.css';
-import pinia from "src/stores";
-import useStore from "src/stores/store";
-// const store = useStore(pinia());
-import ButtonIcon from "src/components/ButtonIcon.vue";
-// import VueSlider from "vue-slider-component";
-import { goToListSource, hasListSource } from "src/utils/playList";
-import { formatTrackTime } from "src/utils/common";
-import {
-  ionPlay,
-  ionPause,
-  ionCaretForwardOutline,
-  ionChevronForwardOutline,
-  ionPlaySkipForwardOutline,
-  ionPlayForward,
-} from "@quasar/extras/ionicons-v7";
-
-export default {
-  name: "PlayerView",
-  components: {
-    ButtonIcon,
-    // VueSlider,
-  },
-  data() {
-    return {
-      ionPlay,
-      ionPause,
-      ionCaretForwardOutline,
-      ionChevronForwardOutline,
-      ionPlaySkipForwardOutline,
-      ionPlayForward,
-    };
-  },
-  computed: {
-    ...mapState(useStore, ["player", "settings", "data"]),
-    currentTrack() {
-      return this.player.player.currentTrack;
-    },
-    volume: {
-      get() {
-        return this.player.player.volume;
-      },
-      set(value) {
-        this.player.player.volume = value;
-      },
-    },
-    playing() {
-      return this.player.player.playing;
-    },
-    audioSource() {
-      return this.player.player._howler?._src.includes("kuwo.cn")
-        ? "音源来自酷我音乐"
-        : "";
-    },
-  },
-  methods: {
-    // ...mapMutations(["toggleLyrics"]),
-    ...mapActions(useStore, ["showToast", "likeATrack"]),
-    playPrevTrack() {
-      this.player.player.playPrevTrack();
-    },
-    playOrPause() {
-      // console.log(
-      //   "playOrPause",
-      //   this.currentTrack,
-      //   this.currentTrack.al && this.currentTrack.al.picUrl
-      // );
-      this.player.player.playOrPause();
-    },
-    playNextTrack() {
-      if (this.player.player.isPersonalFM) {
-        this.player.player.playNextFMTrack();
-      } else {
-        this.player.player.playNextTrack();
-      }
-    },
-    goToNextTracksPage() {
-      if (this.player.player.isPersonalFM) return;
-      this.$route.name === "next"
-        ? this.$router.go(-1)
-        : this.$router.push({ name: "next" });
-    },
-    formatTrackTime(value) {
-      return formatTrackTime(value);
-    },
-    hasList() {
-      return hasListSource();
-    },
-    goToList() {
-      goToListSource();
-    },
-    goToAlbum() {
-      if (this.player.player.currentTrack.al.id === 0) return;
-      this.$router.push({
-        path: "/album/" + this.player.player.currentTrack.al.id,
-      });
-    },
-    goToArtist(id) {
-      this.$router.push({ path: "/artist/" + id });
-    },
-    moveToFMTrash() {
-      this.player.player.moveToFMTrash();
-    },
-    switchRepeatMode() {
-      this.player.player.switchRepeatMode();
-    },
-    switchShuffle() {
-      this.player.player.switchShuffle();
-    },
-    switchReversed() {
-      this.player.player.switchReversed();
-    },
-    mute() {
-      this.player.player.mute();
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .player {
@@ -342,6 +204,7 @@ export default {
     background-color: var(--color-body-bg);
   }
 }
+
 // .shade {
 //   position: absolute;
 //   top: 0;
@@ -389,6 +252,7 @@ export default {
   margin-top: 6px;
   margin-left: 8px;
   align-items: center;
+
   img {
     height: 46px;
     width: 46px;
@@ -397,6 +261,7 @@ export default {
     cursor: pointer;
     user-select: none;
   }
+
   .track-info {
     height: 46px;
     // width: 100px;
@@ -404,6 +269,7 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+
     .name {
       font-weight: 600;
       font-size: 16px;
@@ -416,12 +282,15 @@ export default {
       overflow: hidden;
       word-break: break-all;
     }
+
     .has-list {
       cursor: pointer;
+
       &:hover {
         text-decoration: underline;
       }
     }
+
     .artist {
       font-size: 12px;
       opacity: 0.58;
@@ -431,14 +300,17 @@ export default {
       -webkit-line-clamp: 1;
       overflow: hidden;
       word-break: break-all;
+
       span.ar {
         cursor: pointer;
+
         &:hover {
           text-decoration: underline;
         }
       }
     }
   }
+
   .like-button {
     margin-left: 12px;
   }
@@ -455,20 +327,25 @@ export default {
   justify-content: flex-end;
   align-items: center;
   padding: 0 8px;
+
   .button-icon {
+
     // margin: 0 8px;
     q-icon {
       width: 24px;
       height: 24px;
     }
   }
+
   .svg-icon {
     width: 24px;
     height: 24px;
   }
+
   .play {
     height: 42px;
     width: 42px;
+
     .svg-icon {
       width: 24px;
       height: 24px;
@@ -507,9 +384,11 @@ export default {
 .button-icon.disabled {
   cursor: default;
   opacity: 0.38;
+
   &:hover {
     background: none;
   }
+
   &:active {
     transform: unset;
   }

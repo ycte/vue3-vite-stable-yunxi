@@ -10,7 +10,7 @@ import {
   isLooseLoggedIn as LooseLoggedIn,
 } from './utils/auth'
 import Player from './components/Player.vue'
-import NavBarButton from './components/NavBarButton.vue'
+import NavBarButton from './components/NavBarBelow.vue'
 
 const store = useStore()
 const route = useRoute()
@@ -45,19 +45,21 @@ const showNavbar = computed(() => route.name !== 'lastfmCallback')
 onMounted(() => {
   // TODO: Vue3 eventListener for vercel deploy
   console.log('>APP onActivated test process:', process.env)
+  // console.log('>APP onActivated test player:', player.value.player.playOrPause)
+  // console.log('>APP onActivated test isLogin:', isLooseLoggedIn.value, isAccountLoggedIn.value)
   window.addEventListener('keydown', handleKeydown)
   // TODO: fetch data
   // fetchData();
 })
 function handleKeydown(e) {
-  // console.log('>handleKeydown', e)
+  console.log('>handleKeydown', e)
   if (e.code === 'Space') {
     if (e.target.tagName === 'INPUT')
       return false
     if (route.name === 'mv')
       return false
     e.preventDefault()
-    player.playOrPause()
+    player.value.player.playOrPause()
   }
 }
 function fetchData() {
@@ -97,7 +99,7 @@ function fetchData() {
       <RouterView />
     </div>
     <!-- <Player v-if="enablePlayer" v-show="showPlayer" ref="player" /> -->
-    <!-- <NavBarButton v-show="showNavbar" /> -->
+    <NavBarButton v-show="showNavbar" />
   </div>
 </template>
 
@@ -116,5 +118,18 @@ function fetchData() {
   /* text-align: center; */
   color: #2c3e50;
   /* margin-top: 60px; */
+}
+a {
+  /* //去掉下换线 */
+  text-decoration: none;
+  margin-right: 5%;
+  /* //文字颜色更改 */
+  color: black;
+}
+.router-link-exact-active {
+  color: black;
+}
+.router-link-active {
+  color: black;
 }
 </style>

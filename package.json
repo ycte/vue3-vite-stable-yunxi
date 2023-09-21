@@ -28,7 +28,7 @@
     "svg-sprite-loader": "^6.0.11",
     "vue": "^3.3.4",
     "vue-clipboard2": "^0.3.3",
-    "vue-i18n": "^9.4.0",
+    "vue-i18n": "^9.4.1",
     "vue-router": "^4.2.4"
   },
   "devDependencies": {

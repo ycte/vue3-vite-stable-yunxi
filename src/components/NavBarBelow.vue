@@ -6,17 +6,18 @@ import {
 } from '@quasar/extras/ionicons-v7'
 import ButtonIcon from './ButtonIcon.vue'
 import 'virtual:svg-icons-register'
+import SvgIcon from './SvgIcon.vue'
 </script>
 
 <template>
   <div class="bar-container">
     <div class="navigation-player" />
-    <div class="navigation-links">
+    <div>
       <div class="navlink-items">
         <!-- TODO: active nav -->
         <ButtonIcon :class="{ active: $route.name === 'home' }">
           <div class="navlink-item">
-            <q-icon :name="ionCaretForwardCircle" class="svg-icon"></q-icon>
+            <SvgIcon name="caretForwardCircle" class="svg-icon" />
             <router-link to="/" :class="{ active: $route.name === 'home' }">
               {{ $t("nav.home") }}
             </router-link>
@@ -24,7 +25,7 @@ import 'virtual:svg-icons-register'
         </ButtonIcon>
         <ButtonIcon>
           <div class="navlink-item">
-            <q-icon :name="ionMusicalNotes" class="svg-icon"></q-icon>
+            <SvgIcon name="musicalNotes" class="svg-icon" />
             <router-link
               to="/explore"
               :class="{ active: $route.name === 'explore' }"
@@ -35,7 +36,7 @@ import 'virtual:svg-icons-register'
         </ButtonIcon>
         <ButtonIcon>
           <div class="navlink-item">
-            <q-icon :name="ionAlbums" class="svg-icon"></q-icon>
+            <SvgIcon name="albums" class="svg-icon" />
             <router-link
               to="/library"
               :class="{ active: $route.name === 'library' }"

@@ -1,12 +1,11 @@
-<template>
-  <button class="button-icon"><slot></slot></button>
-</template>
-
-<script>
-export default {
-  name: "ButtonIcon",
-};
+<script setup>
 </script>
+
+<template>
+  <button class="button-icon">
+    <slot />
+  </button>
+</template>
 
 <style lang="scss" scoped>
 button {

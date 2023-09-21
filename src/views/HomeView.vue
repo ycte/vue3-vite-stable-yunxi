@@ -1,43 +1,245 @@
-<script setup>
-</script>
+<template>
+  <TopTitle />
+  <div v-show="show" class="home">
+    <!-- <div
+      v-if="settings.showPlaylistsByAppleMusic !== false"
+      class="index-row first-row"
+    >
+      <div class="title"> by Apple Music </div>
+      <CoverRow
+        :type="'playlist'"
+        :items="byAppleMusic"
+        sub-text="appleMusic"
+        :image-size="1024"
+      />
+    </div> -->
 
-<!-- <div class="area">
-  强占 DOM，减少重排，样式出错
-  <div class="area-container">
-    规划得到的 area
-    <div class="item-settings">
-      设置总体物品样式
-      (various items)
+    <div class="index-row">
+      <div class="title">
+        {{ $t("home.recommendPlaylist") }}
+        <router-link to="/explore?category=推荐歌单">
+          {{ $t("home.seeMore") }}
+          <!-- 推荐歌单 -->
+        </router-link>
+      </div>
+      <!-- <CoverRow
+        :type="'playlist'"
+        :items="recommendPlaylist.items"
+        sub-text="copywriter"
+      /> -->
+    </div>
+    <!-- <div class="index-row">
+      <div class="title"> For You </div>
+      <div class="for-you-row">
+        <DailyTracksCard ref="DailyTracksCard" />
+        <FMCard />
+      </div>
+    </div> -->
+    <div class="index-row">
+      <div class="title">{{ $t("home.recommendArtist") }}</div>
+      <CoverRow
+        type="artist"
+        :column-number="6"
+        :items="recommendArtists.items"
+      />
+    </div>
+    <div class="index-row">
+      <div class="title">
+        {{ $t("home.newAlbum") }}
+        <router-link to="/new-album">{{ $t("home.seeMore") }}</router-link>
+      </div>
+      <CoverRow
+        type="album"
+        :items="newReleasesAlbum.items"
+        sub-text="artist"
+      />
+    </div>
+    <div class="index-row">
+      <div class="title">
+        {{ $t("home.charts") }}
+        <router-link to="/explore?category=排行榜">{{
+          $t("home.seeMore")
+        }}</router-link>
+      </div>
+      <CoverRow
+        type="playlist"
+        :items="topList.items"
+        sub-text="updateFrequency"
+        :image-size="1024"
+      />
     </div>
   </div>
-</div> -->
-<template>
-  <main>
-    <div class="home">
-      <h1> >强占 DOM，减少重排，样式出错 </h1>
-      <div class="home-container">
-        <h2> >规划得到的 area 和 items 的排列方式 </h2>
-        <div class="item-settings" style="align-items: center;">
-          <h3> >设置总体物品样式 </h3>
-          <li> (various items) </li>
-          <li> (various items) </li>
-          <li> (various items) </li>
-          <li> (various items) </li>
-          <li> (various items) </li>
-          <li> (various items) </li>
-          <li> (various items) </li>
-        </div>
-      </div>
-    </div>
-  </main>
 </template>
 
-<style scoped>
-@media (min-width: 1024px) {
-  .item-settings {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
+<script>
+import TopTitle from "src/components/TopTitle.vue";
+import { toplists } from "src/api/playlist";
+import { toplistOfArtists } from "src/api/artist";
+import { newAlbums } from "src/api/album";
+// import { byAppleMusic } from "src/utils/staticData";
+import { getRecommendPlayList } from "src/utils/playList";
+import NProgress from "nprogress";
+// import { mapState } from "vuex";
+import { mapState } from "pinia";
+import { useStore } from "../stores/store.js";
+// import CoverRow from "src/components/CoverRow.vue";
+// import FMCard from "src/components/FMCard.vue";
+// import DailyTracksCard from "src/components/DailyTracksCard.vue";
+
+export default {
+  name: "HomeView",
+  components: {
+    TopTitle,
+    // CoverRow,
+    // FMCard,
+    // DailyTracksCard
+  },
+  data() {
+    return {
+      // settings: store.state.settings,
+      show: false,
+      recommendPlaylist: { items: [] },
+      newReleasesAlbum: { items: [] },
+      topList: {
+        items: [],
+        ids: [19723756, 180106, 60198, 3812895, 60131],
+      },
+      recommendArtists: {
+        items: [],
+        indexs: [],
+      },
+    };
+  },
+  computed: {
+    // ...mapState(store, ["settings"]),
+    ...mapState(useStore, ["settings"]),
+    // byAppleMusic() {
+    //   return byAppleMusic;
+    // },
+  },
+  created() {
+    // console.log("HomeView activated");
+    // console.log(process.env);
+    // console.log(this.settings);
+    this.loadData();
+    // console.log(this.recommendPlaylist);
+    // this.$parent.$refs.scrollbar.restorePosition();
+  },
+  // created() {
+  //   console.log("HomeView created");
+  //   // console.log(this.settings);
+  //   // console.log(store);
+  // },
+  methods: {
+    loadData() {
+      setTimeout(() => {
+        if (!this.show) NProgress.start();
+      }, 1000);
+      getRecommendPlayList(10, false).then((items) => {
+        this.recommendPlaylist.items = items;
+        NProgress.done();
+        this.show = true;
+      });
+      newAlbums({
+        area: this.settings.musicLanguage ?? "ALL",
+        limit: 10,
+      }).then((data) => {
+        this.newReleasesAlbum.items = data.albums;
+      });
+
+      const toplistOfArtistsAreaTable = {
+        all: null,
+        zh: 1,
+        ea: 2,
+        jp: 4,
+        kr: 3,
+      };
+      toplistOfArtists(
+        toplistOfArtistsAreaTable[this.settings.musicLanguage ?? "all"]
+      ).then((data) => {
+        let indexs = [];
+        while (indexs.length < 6) {
+          let tmp = ~~(Math.random() * 100);
+          if (!indexs.includes(tmp)) indexs.push(tmp);
+        }
+        this.recommendArtists.indexs = indexs;
+        this.recommendArtists.items = data.list.artists.filter((l, index) =>
+          indexs.includes(index)
+        );
+      });
+      toplists().then((data) => {
+        this.topList.items = data.list.filter((l) =>
+          this.topList.ids.includes(l.id)
+        );
+      });
+      // this.$refs.DailyTracksCard.loadDailyTracks();
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+// .home {
+//   overflow: hidden;
+// }
+.index-row {
+  margin-top: 34px;
+  // margin-right: 5%;
+}
+.index-row.first-row {
+  margin-top: 32px;
+}
+.playlists {
+  display: flex;
+  flex-wrap: wrap;
+  margin: {
+    right: -12px;
+    left: -12px;
   }
+  .index-playlist {
+    margin: 12px 12px 24px 12px;
+  }
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  a {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.68;
+    margin-right: 5%;
+  }
+}
+a {
+  /* //去掉下换线 */
+  text-decoration: none;
+  margin-right: 5%;
+  /* //文字颜色更改 */
+  color: black;
+}
+.router-link-exact-active {
+  color: black;
+}
+.router-link-active {
+  color: black;
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}
+
+.for-you-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 78px;
 }
 </style>
