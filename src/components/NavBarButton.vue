@@ -48,6 +48,7 @@ import 'virtual:svg-icons-register'
     </div>
   </div>
 </template>
+
 <style>
 /* .navigation-player {
   position: fixed;

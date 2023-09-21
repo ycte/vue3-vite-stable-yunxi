@@ -1,9 +1,9 @@
-import router from "src/router";
-import { doLogout, getCookie } from "src/utils/auth";
-import axios from "axios";
+import router from 'src/router'
+import { doLogout, getCookie } from 'src/utils/auth'
+import axios from 'axios'
 
-let baseURL = "";
-baseURL = "https://netease-cloud-music-api-gamma-five-22.vercel.app/";
+let baseURL = ''
+baseURL = 'https://netease-cloud-music-api-gamma-five-22.vercel.app/'
 // console.log("process.env", process.env);
 // Web 和 Electron 跑在不同端口避免同时启动时冲突
 // if (process.env.IS_ELECTRON) {
@@ -22,27 +22,29 @@ const service = axios.create({
   baseURL,
   withCredentials: true,
   timeout: 15000,
-});
+})
 // console.log(service);
-service.interceptors.request.use(function (config) {
-  if (!config.params) config.params = {};
+service.interceptors.request.use((config) => {
+  if (!config.params) 
+    config.params = {}
   if (baseURL.length) {
     if (
-      baseURL[0] !== "/" &&
+      baseURL[0] !== '/' &&
       // !process.env.IS_ELECTRON &&
-      getCookie("MUSIC_U") !== null
-    ) {
-      config.params.cookie = `MUSIC_U=${getCookie("MUSIC_U")};`;
-    }
-  } else {
-    console.error("You must set up the baseURL in the service's config");
+      getCookie('MUSIC_U') !== null
+    ) 
+      config.params.cookie = `MUSIC_U=${getCookie('MUSIC_U')};` 
+  }
+  else {
+    console.error('You must set up the baseURL in the service\'s config')
   }
 
   if (
     // !process.env.IS_ELECTRON &&
-    !config.url.includes("/login")
+    !config.url.includes('/login')
   ) {
-    config.params.realIP = "211.161.244.70";
+    config.params.realIP = ''
+    config.params.realIP = '211.161.244.70'
     // config.params.realIP =
     //   "https://netease-cloud-music-api-gamma-five-22.vercel.app/";
   }
@@ -51,36 +53,35 @@ service.interceptors.request.use(function (config) {
   //   config.params.realIP = process.env.VUE_APP_REAL_IP;
   // }
 
-  const proxy = JSON.parse(localStorage.getItem("settings")).proxyConfig;
-  if (["HTTP", "HTTPS"].includes(proxy.protocol)) {
-    config.params.proxy = `${proxy.protocol}://${proxy.server}:${proxy.port}`;
-  }
+  const proxy = JSON.parse(localStorage.getItem('settings')).proxyConfig
+  if (['HTTP', 'HTTPS'].includes(proxy.protocol)) 
+    config.params.proxy = `${proxy.protocol}://${proxy.server}:${proxy.port}`
   // console.log("config", config);
-  return config;
-});
+  return config
+})
 
 service.interceptors.response.use(
   (response) => {
-    const res = response.data;
+    const res = response.data
     // console.log("res", res);
-    return res;
+    return res
   },
   async (error) => {
     /** @type {import('axios').AxiosResponse | null} */
-    const response = error.response;
+    const response = error.response
     // console.log(response);
-    const data = response.data;
+    const data = response.data
 
     if (
       response &&
-      typeof data === "object" &&
+      typeof data === 'object' &&
       data.code === 301 &&
-      data.msg === "需要登录"
+      data.msg === '需要登录'
     ) {
-      console.warn("Token has expired. Logout now!");
+      console.warn('Token has expired. Logout now!')
 
       // 登出帳戶
-      doLogout();
+      doLogout()
 
       // 導向登入頁面
       // if (process.env.IS_ELECTRON === true) {
@@ -89,7 +90,7 @@ service.interceptors.response.use(
       //   router.push({ name: "login" });
       // }
     }
-  }
-);
+  },
+)
 
-export default service;
+export default service
