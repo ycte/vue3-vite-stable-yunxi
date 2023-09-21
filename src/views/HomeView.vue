@@ -1,3 +1,78 @@
+<script setup>
+import TopTitle from 'src/components/TopTitle.vue'
+import { toplists } from 'src/api/playlist'
+import { toplistOfArtists } from 'src/api/artist'
+import { newAlbums } from 'src/api/album'
+import { getRecommendPlayList } from 'src/utils/playList'
+import NProgress from 'nprogress'
+import { onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import CoverRow from 'src/components/CoverRow.vue'
+import useStore from '../stores/store.js'
+
+// import FMCard from "src/components/FMCard.vue";
+// import { mapState } from "vuex";
+// import { byAppleMusic } from "src/utils/staticData";
+// import DailyTracksCard from "src/components/DailyTracksCard.vue";
+
+const show = ref(false)
+const recommendPlaylist = ref({ items: [] })
+const newReleasesAlbum = ref({ items: [] })
+const topList = ref({ items: [], ids: [19723756, 180106, 60198, 3812895, 60131] })
+const recommendArtists = ref({ items: [], indexs: [] })
+const { settings } = storeToRefs(useStore())
+
+onMounted(() => {
+  loadData()
+})
+
+async function loadData() {
+  setTimeout(() => {
+    if (!show.value)
+      NProgress.start()
+  }, 1000)
+  getRecommendPlayList(10, false).then((items) => {
+    recommendPlaylist.value.items = items
+    NProgress.done()
+    show.value = true
+  })
+  newAlbums({
+    area: settings.value.musicLanguage ?? 'ALL',
+    limit: 10,
+  }).then((data) => {
+    newReleasesAlbum.value.items = data.albums
+  })
+
+  const toplistOfArtistsAreaTable = {
+    all: null,
+    zh: 1,
+    ea: 2,
+    jp: 4,
+    kr: 3,
+  }
+  toplistOfArtists(
+    toplistOfArtistsAreaTable[settings.value.musicLanguage ?? 'all'],
+  ).then((data) => {
+    const indexs = []
+    while (indexs.length < 6) {
+      const tmp = ~~(Math.random() * 100)
+      if (!indexs.includes(tmp))
+        indexs.push(tmp)
+    }
+    recommendArtists.value.indexs = indexs
+    recommendArtists.value.items = data.list.artists.filter((l, index) =>
+      indexs.includes(index),
+    )
+  })
+  toplists().then((data) => {
+    topList.value.items = data.list.filter(l =>
+      topList.value.ids.includes(l.id),
+    )
+  })
+  // this.$refs.DailyTracksCard.loadDailyTracks();
+}
+</script>
+
 <template>
   <TopTitle />
   <div v-show="show" class="home">
@@ -37,146 +112,26 @@
     </div> -->
     <div class="index-row">
       <div class="title">{{ $t("home.recommendArtist") }}</div>
-      <CoverRow
-        type="artist"
-        :column-number="6"
-        :items="recommendArtists.items"
-      />
+      <CoverRow type="artist" :column-number="6" :items="recommendArtists.items" />
     </div>
     <div class="index-row">
       <div class="title">
         {{ $t("home.newAlbum") }}
         <router-link to="/new-album">{{ $t("home.seeMore") }}</router-link>
       </div>
-      <CoverRow
-        type="album"
-        :items="newReleasesAlbum.items"
-        sub-text="artist"
-      />
+      <CoverRow type="album" :items="newReleasesAlbum.items" sub-text="artist" />
     </div>
     <div class="index-row">
       <div class="title">
         {{ $t("home.charts") }}
-        <router-link to="/explore?category=排行榜">{{
-          $t("home.seeMore")
-        }}</router-link>
+        <router-link to="/explore?category=排行榜">
+          {{ $t("home.seeMore") }}
+        </router-link>
       </div>
-      <CoverRow
-        type="playlist"
-        :items="topList.items"
-        sub-text="updateFrequency"
-        :image-size="1024"
-      />
+      <CoverRow type="playlist" :items="topList.items" sub-text="updateFrequency" :image-size="1024" />
     </div>
   </div>
 </template>
-
-<script>
-import TopTitle from "src/components/TopTitle.vue";
-import { toplists } from "src/api/playlist";
-import { toplistOfArtists } from "src/api/artist";
-import { newAlbums } from "src/api/album";
-// import { byAppleMusic } from "src/utils/staticData";
-import { getRecommendPlayList } from "src/utils/playList";
-import NProgress from "nprogress";
-// import { mapState } from "vuex";
-import { mapState } from "pinia";
-import { useStore } from "../stores/store.js";
-// import CoverRow from "src/components/CoverRow.vue";
-// import FMCard from "src/components/FMCard.vue";
-// import DailyTracksCard from "src/components/DailyTracksCard.vue";
-
-export default {
-  name: "HomeView",
-  components: {
-    TopTitle,
-    // CoverRow,
-    // FMCard,
-    // DailyTracksCard
-  },
-  data() {
-    return {
-      // settings: store.state.settings,
-      show: false,
-      recommendPlaylist: { items: [] },
-      newReleasesAlbum: { items: [] },
-      topList: {
-        items: [],
-        ids: [19723756, 180106, 60198, 3812895, 60131],
-      },
-      recommendArtists: {
-        items: [],
-        indexs: [],
-      },
-    };
-  },
-  computed: {
-    // ...mapState(store, ["settings"]),
-    ...mapState(useStore, ["settings"]),
-    // byAppleMusic() {
-    //   return byAppleMusic;
-    // },
-  },
-  created() {
-    // console.log("HomeView activated");
-    // console.log(process.env);
-    // console.log(this.settings);
-    this.loadData();
-    // console.log(this.recommendPlaylist);
-    // this.$parent.$refs.scrollbar.restorePosition();
-  },
-  // created() {
-  //   console.log("HomeView created");
-  //   // console.log(this.settings);
-  //   // console.log(store);
-  // },
-  methods: {
-    loadData() {
-      setTimeout(() => {
-        if (!this.show) NProgress.start();
-      }, 1000);
-      getRecommendPlayList(10, false).then((items) => {
-        this.recommendPlaylist.items = items;
-        NProgress.done();
-        this.show = true;
-      });
-      newAlbums({
-        area: this.settings.musicLanguage ?? "ALL",
-        limit: 10,
-      }).then((data) => {
-        this.newReleasesAlbum.items = data.albums;
-      });
-
-      const toplistOfArtistsAreaTable = {
-        all: null,
-        zh: 1,
-        ea: 2,
-        jp: 4,
-        kr: 3,
-      };
-      toplistOfArtists(
-        toplistOfArtistsAreaTable[this.settings.musicLanguage ?? "all"]
-      ).then((data) => {
-        let indexs = [];
-        while (indexs.length < 6) {
-          let tmp = ~~(Math.random() * 100);
-          if (!indexs.includes(tmp)) indexs.push(tmp);
-        }
-        this.recommendArtists.indexs = indexs;
-        this.recommendArtists.items = data.list.artists.filter((l, index) =>
-          indexs.includes(index)
-        );
-      });
-      toplists().then((data) => {
-        this.topList.items = data.list.filter((l) =>
-          this.topList.ids.includes(l.id)
-        );
-      });
-      // this.$refs.DailyTracksCard.loadDailyTracks();
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 // .home {
@@ -186,16 +141,20 @@ export default {
   margin-top: 34px;
   // margin-right: 5%;
 }
+
 .index-row.first-row {
   margin-top: 32px;
 }
+
 .playlists {
   display: flex;
   flex-wrap: wrap;
+
   margin: {
     right: -12px;
     left: -12px;
   }
+
   .index-playlist {
     margin: 12px 12px 24px 12px;
   }
@@ -209,6 +168,7 @@ export default {
   font-size: 28px;
   font-weight: 700;
   color: var(--color-text);
+
   a {
     font-size: 13px;
     font-weight: 600;
@@ -216,6 +176,7 @@ export default {
     margin-right: 5%;
   }
 }
+
 a {
   /* //去掉下换线 */
   text-decoration: none;
@@ -223,9 +184,11 @@ a {
   /* //文字颜色更改 */
   color: black;
 }
+
 .router-link-exact-active {
   color: black;
 }
+
 .router-link-active {
   color: black;
 }
