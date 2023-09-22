@@ -18,6 +18,7 @@ const title = computed(() => {
   justify-content: space-between;
   align-items: flex-end;
   margin-top: 45px;
+  margin-left: 20px;
   margin-bottom: -25px;
   font-size: 38px;
   font-weight: 700;

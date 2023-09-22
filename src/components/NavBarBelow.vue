@@ -12,7 +12,7 @@ import SvgIcon from './SvgIcon.vue'
 <template>
   <div class="bar-container">
     <div class="navigation-player" />
-    <div>
+    <div class="navigation-links">
       <div class="navlink-items">
         <!-- TODO: active nav -->
         <ButtonIcon :class="{ active: $route.name === 'home' }">
@@ -51,7 +51,7 @@ import SvgIcon from './SvgIcon.vue'
 </template>
 
 <style>
-/* .navigation-player {
+.navigation-player {
   position: fixed;
   bottom: 55px;
   left: 0;
@@ -61,7 +61,7 @@ import SvgIcon from './SvgIcon.vue'
   backdrop-filter: saturate(180%) blur(30px);
   background-color: var(--color-navbar-bg);
   background-color: rgba(255, 255, 255, 0.77);
-} */
+}
 .navigation-links {
   position: fixed;
   bottom: 0;

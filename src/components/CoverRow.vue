@@ -82,7 +82,7 @@ function getImageUrl(item) {
   > -->
   <div class="cover-row">
     <RecycleScroller 
-      v-slot="{ item }" 
+      v-slot="{ item, index }" 
       class="scroll" 
       :item-size="165" 
       key-field="id" 
@@ -90,21 +90,20 @@ function getImageUrl(item) {
       direction="horizontal"
     >
       <div :key="index">
-        <!-- <q-separator v-if="index === 0" vertical spaced /> -->
-
-        <div class="item" :class="{ artist: type === 'artist' }">
-          <Cover :id="item.id" :image-url="getImageUrl(item)" :type="type"
-                 :play-button-size="type === 'artist' ? 26 : playButtonSize" 
+        <div class="item" :class="{ artist: props.type === 'artist' }">
+          <Cover 
+            :id="item.id" :image-url="getImageUrl(item)" :type="props.type"
+            :play-button-size="props.type === 'artist' ? 26 : props.playButtonSize" 
           />
           <div class="text">
-            <!-- <div v-if="showPlayCount" class="info">
-              <span class="play-count"
-                ><svg-icon icon-class="play" />
-                hhhhh
-                {{ item.playCount | formatPlayCount }}
+            <div v-if="props.showPlayCount" class="info">
+              <span class="play-count">
+                <!-- <SvgIcon /> -->
+                <!-- {{ item.playCount | formatPlayCount }} -->
+                {{ item.playCount }}
               </span>
-            </div> -->
-            <div class="title" :style="{ fontSize: subTextFontSize }">
+            </div>
+            <div class="title" :style="{ fontSize: props.subTextFontSize }">
               <!-- <span v-if="isExplicit(item)" class="explicit-symbol"
                 ><ExplicitSymbol
               /></span>
@@ -115,20 +114,13 @@ function getImageUrl(item) {
                 {{ item.name }}
               </router-link>
             </div>
-            <div v-if="type !== 'artist' && subText !== 'none'" class="info">
+            <div v-if="props.type !== 'artist' && props.subText !== 'none'" class="info">
               <span v-html="getSubText(item)" />
             </div>
           </div>
         </div>
-        <!-- <q-separator vertical spaced /> -->
       </div>
     </RecycleScroller>
-    <!-- <div
-      v-for="item in items"
-      :key="item.id"
-      class="item"
-      :class="{ artist: type === 'artist' }"
-    ></div> -->
   </div>
 </template>
 
@@ -146,6 +138,7 @@ function getImageUrl(item) {
 .item {
   width: 155px;
   color: var(--color-text);
+  margin-left: 20px;
 
   // border-left: 3%;
   .text {

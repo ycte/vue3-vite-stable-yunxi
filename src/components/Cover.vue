@@ -2,8 +2,7 @@
 import useStore from 'src/stores/store.js'
 import { computed, defineProps, ref } from 'vue'
 import { useRouter } from 'vue-router'
-
-
+import SvgIcon from './SvgIcon.vue'
 
 const props = defineProps({
   id: { type: Number, required: true },
@@ -30,6 +29,7 @@ const imageStyles = computed(() => {
     styles.borderRadius = '50%'
   return styles
 })
+
 const playButtonStyles = computed(() => {
   const styles = {}
   styles.width = `${props.playButtonSize}%`
@@ -43,6 +43,11 @@ const shadowStyles = computed(() => {
     styles.borderRadius = '50%'
   return styles
 })
+
+// function notPlay() {
+//   console.log('>cover play test')
+//   return 'geigei'
+// }
 function play() {
   const store = useStore()
   const player = store.player.player
@@ -62,24 +67,27 @@ function goTo() {
 
 <template>
   <!-- TODO: @click="clickCoverToPlay ? play() : goTo()" -->
-  <div class="cover" :class="{ 'cover-hover': coverHover }" @mouseover="focus = true" @mouseleave="focus = false"
-    @click="clickCoverToPlay ? play() : play()">
+  <div 
+    class="cover" :class="{ 'cover-hover': coverHover }" 
+    @mouseover="focus = true" @mouseleave="focus = false"
+    @click="props.clickCoverToPlay ? play() : goTo()"
+  >
     <div class="cover-container">
       <div class="shade">
-        <button v-show="focus" class="play-button" :style="playButtonStyles" @click.stop="play()">
-          <q-icon class="svg-icon">
-            <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="play"
-              class="svg-inline--fa fa-play fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-              <path fill="currentColor"
-                d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z">
-              </path>
-            </svg>
-          </q-icon>
+        <button 
+          v-show="focus" class="play-button" :style="playButtonStyles" 
+          @click.stop="play()"
+        >
+          <SvgIcon name="play" style="margin-top:5px;margin-left: 3px;" />
         </button>
       </div>
-      <img :src="imageUrl" :style="imageStyles" loading="lazy" />
+      <img :src="imageUrl" :style="imageStyles" loading="lazy">
       <transition v-if="coverHover || alwaysShowShadow" name="fade">
-        <div v-show="focus || alwaysShowShadow" class="shadow" :style="shadowStyles"></div>
+        <div 
+          v-show="focus || alwaysShowShadow" 
+          class="shadow" 
+          :style="shadowStyles" 
+        />
       </transition>
     </div>
   </div>

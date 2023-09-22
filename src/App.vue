@@ -86,38 +86,34 @@ function fetchData() {
 
 <template>
   <!-- area for router-view and top-level components -->
-
-  <div id="app">
-    <SvgIcon name="logo" width="30px" height="30px" />
-    <RouterLink to="/">
-      Home
-    </RouterLink>
-    <RouterLink to="/about">
-      About
-    </RouterLink>
-    <div>
-      <RouterView />
-    </div>
-    <!-- <Player v-if="enablePlayer" v-show="showPlayer" ref="player" /> -->
-    <NavBarButton v-show="showNavbar" />
+  
+  <div id="root">
+    <!-- <h1>hhhh</h1> -->
+    <RouterView style="width:100%;margin: 0,0,0,0;" />
   </div>
+  <!-- <Player v-if="enablePlayer" v-show="showPlayer" ref="player" /> -->
+  <NavBarButton v-show="showNavbar" />
 </template>
 
 <style scoped>
 #root {
-  width: 95%;
-  margin-left: 5%;
-  margin-right: 5%;
+  
+  margin-left: -32px;
+  margin-right: -32px;
+  margin-top: -32px;
   margin-bottom: 120px;
+  /* background-color: black; */
 }
 
 #app {
+  /* display: fixed;
+  left: 0;
+  right: 0;
+  top: 0; */
+  /* width: 100%; */
+  /* display: flex; */
+  margin-left: -10%;
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  /* -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale; */
-  /* text-align: center; */
-  color: #2c3e50;
-  /* margin-top: 60px; */
 }
 a {
   /* //去掉下换线 */

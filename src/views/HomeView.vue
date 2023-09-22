@@ -97,11 +97,11 @@ async function loadData() {
           <!-- 推荐歌单 -->
         </router-link>
       </div>
-      <!-- <CoverRow
-        :type="'playlist'"
+      <CoverRow
+        type="playlist"
         :items="recommendPlaylist.items"
         sub-text="copywriter"
-      /> -->
+      />
     </div>
     <!-- <div class="index-row">
       <div class="title"> For You </div>
@@ -139,7 +139,11 @@ async function loadData() {
 // }
 .index-row {
   margin-top: 34px;
+  // margin-left: 5%;
   // margin-right: 5%;
+  .title {
+    margin-left: 20px;
+  }
 }
 
 .index-row.first-row {
