@@ -21,7 +21,7 @@ import Cover from '@/components/Cover.vue'
 import Modal from '@/components/Modal.vue'
 
 // TODO: what?
-// import TrackList from '@/components/TrackList.vue'
+import TrackList from '@/components/TrackList.vue'
 
 const specialPlaylist = ref({
   2829816518: {
@@ -455,8 +455,11 @@ function toggleFullDescription() {
       </div>
     </div>
 
-    <!-- <TrackList :id="playlist.id" :tracks="filteredTracks" type="playlist" :extra-context-menu-item="isUserOwnPlaylist ? ['removeTrackFromPlaylist'] : []
-      " /> -->
+    <TrackList 
+      :id="playlist.id" :tracks="filteredTracks" type="playlist" 
+      :extra-context-menu-item="isUserOwnPlaylist 
+        ? ['removeTrackFromPlaylist'] : []" 
+    />
 
     <!-- <div class="load-more">
       <ButtonTwoTone v-show="hasMore" color="grey" :loading="loadingMore" @click.native="loadMore(100)">{{
