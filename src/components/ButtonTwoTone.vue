@@ -1,17 +1,9 @@
-<template>
-  <button :style="buttonStyle" :class="color">
-    <!-- <svg-icon
-      v-if="iconClass !== null"
-      :icon-class="iconClass"
-      :style="{ marginRight: iconButton ? '0px' : '8px' }"
-    /> -->
-    <slot></slot>
-  </button>
-</template>
-
 <script>
+import SvgIcon from './SvgIcon.vue'
+
 export default {
-  name: "ButtonTwoTone",
+  name: 'ButtonTwoTone',
+  components: { SvgIcon },
   props: {
     iconClass: {
       type: String,
@@ -27,37 +19,45 @@ export default {
     },
     color: {
       type: String,
-      default: "blue",
+      default: 'blue',
     },
     backgroundColor: {
       type: String,
-      default: "",
+      default: '',
     },
     textColor: {
       type: String,
-      default: "",
+      default: '',
     },
     shape: {
       type: String,
-      default: "square",
+      default: 'square',
     },
   },
   computed: {
     buttonStyle() {
-      let styles = {
-        borderRadius: this.shape === "round" ? "50%" : "8px",
+      const styles = {
+        borderRadius: this.shape === 'round' ? '50%' : '8px',
         padding: `8px ${this.horizontalPadding}px`,
         // height: "38px",
-        width: this.shape === "round" ? "38px" : "auto",
-      };
-      if (this.backgroundColor !== "")
-        styles.backgroundColor = this.backgroundColor;
-      if (this.textColor !== "") styles.color = this.textColor;
-      return styles;
+        width: this.shape === 'round' ? '38px' : 'auto',
+      }
+      if (this.backgroundColor !== '')
+        styles.backgroundColor = this.backgroundColor
+      if (this.textColor !== '')
+        styles.color = this.textColor
+      return styles
     },
   },
-};
+}
 </script>
+
+<template>
+  <button :style="buttonStyle" :class="color">
+    <SvgIcon v-if="iconClass !== null" name="iconClass" :style="{ marginRight: iconButton ? '0px' : '8px' }" />
+    <slot />
+  </button>
+</template>
 
 <style lang="scss" scoped>
 button {
@@ -74,22 +74,27 @@ button {
   margin-right: 12px;
   transition: 0.2s;
   user-select: none;
+
   .svg-icon {
     width: 16px;
     height: 16px;
   }
+
   &:hover {
     transform: scale(1.06);
   }
+
   &:active {
     transform: scale(0.94);
   }
 }
+
 button.grey {
   background-color: var(--color-secondary-bg);
   color: var(--color-text);
   opacity: 0.78;
 }
+
 button.transparent {
   background-color: transparent;
 }

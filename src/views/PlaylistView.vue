@@ -1,8 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useStore } from '../stores/store'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import NProgress from 'nprogress'
+import useStore from '../stores/store'
+import SvgIcon from '../components/SvgIcon.vue'
 import {
   deletePlaylist,
   getPlaylistDetail,
@@ -15,10 +17,11 @@ import locale from '@/locale'
 
 import ButtonTwoTone from '@/components/ButtonTwoTone.vue'
 import ContextMenu from '@/components/ContextMenu.vue'
-import TrackList from '@/components/TrackList.vue'
 import Cover from '@/components/Cover.vue'
 import Modal from '@/components/Modal.vue'
-import useStore from '../stores/store'
+
+// TODO: what?
+// import TrackList from '@/components/TrackList.vue'
 
 const specialPlaylist = ref({
   2829816518: {
@@ -113,8 +116,12 @@ const specialPlaylist = ref({
 
 // 自定义指令 v-focus
 const vFocus = {
-  inserted: (el) => el.focus()
+  inserted: el => el.focus(),
 }
+
+const router = useRouter()
+const route = useRoute()
+
 const show = ref(false)
 const playlist = ref({
   id: 0,
@@ -138,41 +145,43 @@ const searchInputWidth = ref('0px')
 
 const { player, data } = storeToRefs(useStore())
 
-const isLikeSongsPage = computed(() => this.$route.name === 'likedSongs')
-const specialPlaylistInfo = computed(() => specialPlaylist[this.playlist.id])
+
+const isLikeSongsPage = computed(() => route.name === 'likedSongs')
+const specialPlaylistInfo = computed(() => specialPlaylist.value[playlist.value.id])
 const isUserOwnPlaylist = computed(() =>
-  this.playlist.creator.userId === this.data.user.userId &&
-  this.playlist.id !== this.data.likedSongPlaylistID
+  playlist.value.creator.userId === data.value.user.userId &&
+  playlist.value.id !== data.value.likedSongPlaylistID,
 )
 const filteredTracks = computed(() => {
-  return this.tracks.filter(
+  return tracks.value.filter(
     track =>
       (track.name &&
         track.name
           .toLowerCase()
-          .includes(this.searchKeyWords.toLowerCase())) ||
+          .includes(searchKeyWords.value.toLowerCase())) ||
       (track.al.name &&
         track.al.name
           .toLowerCase()
-          .includes(this.searchKeyWords.toLowerCase())) ||
+          .includes(searchKeyWords.value.toLowerCase())) ||
       track.ar.find(
         artist =>
           artist.name &&
           artist.name
             .toLowerCase()
-            .includes(this.searchKeyWords.toLowerCase())
-      )
-  );
-},
+            .includes(searchKeyWords.value.toLowerCase()),
+      ),
+  )
+})
 
 onMounted(() => {
-  if (this.$route.name === 'likedSongs') {
-    this.loadData(this.data.likedSongPlaylistID);
-  } else {
-    this.loadData(this.$route.params.id);
-  }
+  if (route.name === 'likedSongs') 
+    loadData(data.value.likedSongPlaylistID)
+  else 
+    loadData(route.params.id)
+  
   setTimeout(() => {
-    if (!this.show) NProgress.start();
+    if (!show.value) 
+      NProgress.start()
   }, 1000)
 })
 
@@ -183,350 +192,293 @@ const playTrackOnListByID = store.playTrackOnListByID
 const showToast = store.showToast
 
 function playPlaylistByID(trackID = 'first') {
-  let trackIDs = this.playlist.trackIds.map(t => t.id);
-  this.$store.state.player.replacePlaylist(
+  const trackIDs = playlist.value.trackIds.map(t => t.id)
+  store.player.player.replacePlaylist(
     trackIDs,
-    this.playlist.id,
+    playlist.value.id,
     'playlist',
-    trackID
-  );
+    trackID,
+  )
 }
 function likePlaylist(toast = false) {
   if (!isAccountLoggedIn()) {
-    this.showToast(locale.t('toast.needToLogin'));
-    return;
+    showToast(locale.t('toast.needToLogin'))
+    return
   }
   subscribePlaylist({
-    id: this.playlist.id,
-    t: this.playlist.subscribed ? 2 : 1,
-  }).then(data => {
+    id: playlist.value.id,
+    t: playlist.value.subscribed ? 2 : 1,
+  }).then((data, id) => {
     if (data.code === 200) {
-      this.playlist.subscribed = !this.playlist.subscribed;
-      if (toast === true)
-        this.showToast(
-          this.playlist.subscribed ? '已保存到音乐库' : '已从音乐库删除'
-        );
+      playlist.value.subscribed = !playlist.value.subscribed
+      if (toast === true) {
+        showToast(
+          playlist.value.subscribed ? '已保存到音乐库' : '已从音乐库删除',
+        )
+      }
     }
-    getPlaylistDetail(this.id, true).then(data => {
-      this.playlist = data.playlist;
-    });
-  });
+    getPlaylistDetail(id, true).then((data) => {
+      playlist.value = data.playlist
+    })
+  })
 }
 function loadData(id, next = undefined) {
-  this.id = id;
-  getPlaylistDetail(this.id, true)
-    .then(data => {
-      this.playlist = data.playlist;
-      this.tracks = data.playlist.tracks;
-      NProgress.done();
-      if (next !== undefined) next();
-      this.show = true;
-      this.lastLoadedTrackIndex = data.playlist.tracks.length - 1;
-      return data;
+  // id = id
+  getPlaylistDetail(id, true)
+    .then((data) => {
+      playlist.value = data.playlist
+      tracks.value = data.playlist.tracks
+      NProgress.done()
+      if (next !== undefined) 
+        next()
+      show.value = true
+      lastLoadedTrackIndex.value = data.playlist.tracks.length - 1
+      return data
     })
     .then(() => {
-      if (this.playlist.trackCount > this.tracks.length) {
-        this.loadingMore = true;
-        this.loadMore();
+      if (playlist.value.trackCount > tracks.value.length) {
+        loadingMore.value = true
+        loadMore()
       }
-    });
+    })
 }
 function loadMore(loadNum = 100) {
-  let trackIDs = this.playlist.trackIds.filter((t, index) => {
+  let trackIDs = playlist.value.trackIds.filter((t, index) => {
     if (
-      index > this.lastLoadedTrackIndex &&
-      index <= this.lastLoadedTrackIndex + loadNum
-    ) {
-      return t;
-    }
-  });
-  trackIDs = trackIDs.map(t => t.id);
-  getTrackDetail(trackIDs.join(',')).then(data => {
-    this.tracks.push(...data.songs);
-    this.lastLoadedTrackIndex += trackIDs.length;
-    this.loadingMore = false;
-    if (this.lastLoadedTrackIndex + 1 === this.playlist.trackIds.length) {
-      this.hasMore = false;
-    } else {
-      this.hasMore = true;
-    }
-  });
+      index > lastLoadedTrackIndex.value &&
+      index <= lastLoadedTrackIndex.value + loadNum
+    ) return t
+    // TODO: better way
+    return t  
+  })
+  trackIDs = trackIDs.map(t => t.id)
+  getTrackDetail(trackIDs.join(',')).then((data) => {
+    tracks.value.push(...data.songs)
+    lastLoadedTrackIndex.value += trackIDs.length
+    loadingMore.value = false
+    if (lastLoadedTrackIndex.value + 1 === playlist.value.trackIds.length) 
+      hasMore.value = false
+    else 
+      hasMore.value = true
+  })
 }
 function openMenu(e) {
-  this.$refs.playlistMenu.openMenu(e);
+  openMenu(e)
+  // TODO: what?
+  // this.$refs.playlistMenu.openMenu(e);
 }
-function deletePlaylist() {
+function deletePlaylist1() {
   if (!isAccountLoggedIn()) {
-    this.showToast(locale.t('toast.needToLogin'));
-    return;
+    showToast(locale.t('toast.needToLogin'))
+    return
   }
-  let confirmation = confirm(`确定要删除歌单 ${this.playlist.name}？`);
+  const confirmation = confirm(`确定要删除歌单 ${playlist.value.name}？`)
   if (confirmation === true) {
-    deletePlaylist(this.playlist.id).then(data => {
+    deletePlaylist(playlist.value.id).then((data) => {
       if (data.code === 200) {
-        nativeAlert(`已删除歌单 ${this.playlist.name}`);
-        this.$router.go(-1);
-      } else {
-        nativeAlert('发生错误');
+        nativeAlert(`已删除歌单 ${playlist.value.name}`)
+        router.go(-1)
       }
-    });
+      else {
+        nativeAlert('发生错误')
+      }
+    })
   }
 }
 function editPlaylist() {
-  nativeAlert('此功能开发中');
+  nativeAlert('此功能开发中')
 }
 function searchInPlaylist() {
-  this.displaySearchInPlaylist =
-    !this.displaySearchInPlaylist || this.isLikeSongsPage;
-  if (this.displaySearchInPlaylist == false) {
-    this.searchKeyWords = '';
-    this.inputSearchKeyWords = '';
-  } else {
-    this.searchInputWidth = '172px';
-    this.loadMore(500);
+  displaySearchInPlaylist.value =
+    !displaySearchInPlaylist.value || isLikeSongsPage.value
+  if (displaySearchInPlaylist.value === false) {
+    searchKeyWords.value = ''
+    inputSearchKeyWords.value = ''
+  }
+  else {
+    searchInputWidth.value = '172px'
+    loadMore(500)
   }
 }
 function removeTrack(trackID) {
   if (!isAccountLoggedIn()) {
-    this.showToast(locale.t('toast.needToLogin'));
-    return;
+    showToast(locale.t('toast.needToLogin'))
+    return
   }
-  this.tracks = this.tracks.filter(t => t.id !== trackID);
+  tracks.value = tracks.value.filter(t => t.id !== trackID)
 }
 function inputDebounce() {
-  if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
-  this.debounceTimeout = setTimeout(() => {
-    this.searchKeyWords = this.inputSearchKeyWords;
-  }, 600);
+  if (debounceTimeout.value)
+    clearTimeout(debounceTimeout.value)
+  debounceTimeout.value = setTimeout(() => {
+    searchKeyWords.value = inputSearchKeyWords.value
+  }, 600)
 }
 function toggleFullDescription() {
-  this.showFullDescription = !this.showFullDescription;
-  if (this.showFullDescription) {
-    this.$store.commit('enableScrolling', false);
-  } else {
-    this.$store.commit('enableScrolling', true);
-  }
+  showFullDescription.value = !showFullDescription.value
+  if (showFullDescription.value) 
+    store.enableScrolling = false
+  else 
+    store.enableScrolling = true 
 }
 </script>
 
 <template>
   <span>playlist</span>
   <div v-show="show" class="playlist">
-    <div
-      v-if="specialPlaylistInfo === undefined && !isLikeSongsPage"
+    <!-- !special-playlist -->
+    <div 
+      v-if="specialPlaylistInfo === undefined && !isLikeSongsPage" 
       class="playlist-info"
     >
-      <Cover
-        :id="playlist.id"
-        :image-url="playlist.coverImgUrl | resizeImage(1024)"
-        :show-play-button="true"
-        :always-show-shadow="true"
-        :click-cover-to-play="true"
-        :fixed-size="288"
-        type="playlist"
+      <!-- <Cover 
+        :id="playlist.id" :image-url="playlist.coverImgUrl" 
+        :show-play-button="true" :always-show-shadow="true" 
+        :click-cover-to-play="true" :fixed-size="288" type="playlist" 
         :cover-hover="false"
-        :play-button-size="18"
-        @click.right.native="openMenu"
-      />
+        :play-button-size="18" @click.right="openMenu" 
+      /> -->
       <div class="info">
-        <div class="title" @click.right="openMenu"
-          ><span v-if="playlist.privacy === 10" class="lock-icon">
-            <svg-icon icon-class="lock" /></span
-          >{{ playlist.name }}</div
-        >
+        <div class="title" @click.right="openMenu">
+          <span v-if="playlist.privacy === 10" class="lock-icon">
+            <SvgIcon name="lock" />
+          </span>
+          {{ playlist.name }}
+        </div>
         <div class="artist">
           Playlist by
-          <span
-            v-if="
-              [
-                5277771961, 5277965913, 5277969451, 5277778542, 5278068783,
-              ].includes(playlist.id)
-            "
+          <span 
+            v-if="[
+              5277771961, 5277965913, 5277969451, 5277778542, 5278068783,
+            ].includes(playlist.id)" 
             style="font-weight: 600"
-            >Apple Music</span
-          >
-          <a
-            v-else
-            :href="`https://music.163.com/#/user/home?id=${playlist.creator.userId}`"
-            target="blank"
-            >{{ playlist.creator.nickname }}</a
-          >
+          >Apple Music</span>
+          <a 
+            v-else target="blank"
+            :href="`https://music.163.com/#/user/home?id=${playlist.creator.userId}`" 
+          >{{ playlist.creator.nickname }}</a>
         </div>
         <div class="date-and-count">
           {{ $t('playlist.updatedAt') }}
-          {{ playlist.updateTime | formatDate }} · {{ playlist.trackCount }}
+          {{ playlist.updateTime }} · {{ playlist.trackCount }}
           {{ $t('common.songs') }}
         </div>
         <div class="description" @click="toggleFullDescription">
           {{ playlist.description }}
         </div>
         <div class="buttons">
-          <ButtonTwoTone icon-class="play" @click.native="playPlaylistByID()">
+          <ButtonTwoTone icon-class="play" @click.="playPlaylistByID()">
             {{ $t('common.play') }}
           </ButtonTwoTone>
-          <ButtonTwoTone
+          <ButtonTwoTone 
             v-if="playlist.creator.userId !== data.user.userId"
-            :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'"
-            :icon-button="true"
-            :horizontal-padding="0"
-            :color="playlist.subscribed ? 'blue' : 'grey'"
+            :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'" 
+            :icon-button="true" :horizontal-padding="0"
+            :color="playlist.subscribed ? 'blue' : 'grey'" 
             :text-color="playlist.subscribed ? '#335eea' : ''"
-            :background-color="
-              playlist.subscribed ? 'var(--color-secondary-bg)' : ''
-            "
-            @click.native="likePlaylist"
-          >
-          </ButtonTwoTone>
-          <ButtonTwoTone
-            icon-class="more"
-            :icon-button="true"
-            :horizontal-padding="0"
-            color="grey"
-            @click.native="openMenu"
-          >
-          </ButtonTwoTone>
+            :background-color="playlist.subscribed ? 'var(--color-secondary-bg)' 
+              : ''" @click="likePlaylist"
+          />
+          <ButtonTwoTone 
+            icon-class="more" :icon-button="true" :horizontal-padding="0" 
+            color="grey" @click="openMenu"
+          />
         </div>
       </div>
       <div v-if="displaySearchInPlaylist" class="search-box">
         <div class="container" :class="{ active: inputFocus }">
-          <svg-icon icon-class="search" />
+          <SvgIcon name="search" />
           <div class="input">
-            <input
-              v-model.trim="inputSearchKeyWords"
-              v-focus
+            <input 
+              v-model.trim="inputSearchKeyWords" v-focus 
               :placeholder="inputFocus ? '' : $t('playlist.search')"
-              @input="inputDebounce()"
-              @focus="inputFocus = true"
+              @input="inputDebounce()" @focus="inputFocus = true" 
               @blur="inputFocus = false"
-            />
+            >
           </div>
         </div>
       </div>
     </div>
+    <!-- special-playlist -->
     <div v-if="specialPlaylistInfo !== undefined" class="special-playlist">
-      <div
-        class="title"
-        :class="specialPlaylistInfo.gradient"
+      <div 
+        class="title" :class="specialPlaylistInfo.gradient" 
         @click.right="openMenu"
       >
-        <img :src="playlist.coverImgUrl | resizeImage" />
+        <img :src="playlist.coverImgUrl">
         {{ specialPlaylistInfo.name }}
       </div>
-      <div class="subtitle"
-        >{{ playlist.englishTitle }} · {{ playlist.updateFrequency }}
+      <div class="subtitle">
+        {{ playlist.englishTitle }} · {{ playlist.updateFrequency }}
       </div>
-
       <div class="buttons">
-        <ButtonTwoTone
-          class="play-button"
-          icon-class="play"
-          color="grey"
-          @click.native="playPlaylistByID()"
+        <ButtonTwoTone 
+          class="play-button" icon-class="play" color="grey" 
+          @click="playPlaylistByID()"
         >
           {{ $t('common.play') }}
         </ButtonTwoTone>
-        <ButtonTwoTone
+        <ButtonTwoTone 
           v-if="playlist.creator.userId !== data.user.userId"
-          :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'"
-          :icon-button="true"
-          :horizontal-padding="0"
-          :color="playlist.subscribed ? 'blue' : 'grey'"
+          :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'" 
+          :icon-button="true" :horizontal-padding="0"
+          :color="playlist.subscribed ? 'blue' : 'grey'" 
           :text-color="playlist.subscribed ? '#335eea' : ''"
-          :background-color="
-            playlist.subscribed ? 'var(--color-secondary-bg)' : ''
-          "
-          @click.native="likePlaylist"
-        >
-        </ButtonTwoTone>
-        <ButtonTwoTone
-          icon-class="more"
-          :icon-button="true"
-          :horizontal-padding="0"
-          color="grey"
-          @click.native="openMenu"
-        >
-        </ButtonTwoTone>
+          :background-color="playlist.subscribed ? 'var(--color-secondary-bg)' 
+            : ''" @click.="likePlaylist"
+        />
+        <ButtonTwoTone 
+          icon-class="more" :icon-button="true" 
+          :horizontal-padding="0" color="grey"
+          @click.="openMenu"
+        />
       </div>
     </div>
-
+    <!-- likeSongs -->
     <div v-if="isLikeSongsPage" class="user-info">
       <h1>
-        <img
-          class="avatar"
-          :src="data.user.avatarUrl | resizeImage"
-          loading="lazy"
-        />
+        <img class="avatar" :src="data.user.avatarUrl" loading="lazy">
         {{ data.user.nickname }}{{ $t('library.sLikedSongs') }}
       </h1>
       <div class="search-box-likepage" @click="searchInPlaylist()">
         <div class="container" :class="{ active: inputFocus }">
-          <svg-icon icon-class="search" />
+          <SvgIcon name="search" />
           <div class="input" :style="{ width: searchInputWidth }">
-            <input
-              v-if="displaySearchInPlaylist"
-              v-model.trim="inputSearchKeyWords"
-              v-focus
-              :placeholder="inputFocus ? '' : $t('playlist.search')"
-              @input="inputDebounce()"
-              @focus="inputFocus = true"
-              @blur="inputFocus = false"
-            />
+            <input 
+              v-if="displaySearchInPlaylist" v-model.trim="inputSearchKeyWords" 
+              v-focus :placeholder="inputFocus ? '' : $t('playlist.search')" 
+              @input="inputDebounce()" @focus="inputFocus = true"
+              @blur="inputFocus = false" 
+            >
           </div>
         </div>
       </div>
     </div>
 
-    <TrackList
-      :id="playlist.id"
-      :tracks="filteredTracks"
-      type="playlist"
-      :extra-context-menu-item="
-        isUserOwnPlaylist ? ['removeTrackFromPlaylist'] : []
-      "
-    />
+    <!-- <TrackList :id="playlist.id" :tracks="filteredTracks" type="playlist" :extra-context-menu-item="isUserOwnPlaylist ? ['removeTrackFromPlaylist'] : []
+      " /> -->
 
-    <div class="load-more">
-      <ButtonTwoTone
-        v-show="hasMore"
-        color="grey"
-        :loading="loadingMore"
-        @click.native="loadMore(100)"
-        >{{ $t('explore.loadMore') }}</ButtonTwoTone
-      >
-    </div>
+    <!-- <div class="load-more">
+      <ButtonTwoTone v-show="hasMore" color="grey" :loading="loadingMore" @click.native="loadMore(100)">{{
+        $t('explore.loadMore') }}</ButtonTwoTone>
+    </div> -->
 
-    <Modal
-      :show="showFullDescription"
-      :close="toggleFullDescription"
-      :show-footer="false"
-      :click-outside-hide="true"
-      title="歌单介绍"
-      >{{ playlist.description }}</Modal
-    >
+    <!-- <Modal :show="showFullDescription" :close="toggleFullDescription" :show-footer="false" :click-outside-hide="true"
+      title="歌单介绍">{{ playlist.description }}</Modal> -->
 
-    <ContextMenu ref="playlistMenu">
+    <!-- <ContextMenu ref="playlistMenu">
       <div class="item">{{ $t('contextMenu.addToQueue') }}</div>
       <div class="item" @click="likePlaylist(true)">{{
         playlist.subscribed
-          ? $t('contextMenu.removeFromLibrary')
-          : $t('contextMenu.saveToLibrary')
+        ? $t('contextMenu.removeFromLibrary')
+        : $t('contextMenu.saveToLibrary')
       }}</div>
       <div class="item" @click="searchInPlaylist()">{{
         $t('contextMenu.searchInPlaylist')
       }}</div>
-      <div
-        v-if="playlist.creator.userId === data.user.userId"
-        class="item"
-        @click="editPlaylist"
-        >编辑歌单信息</div
-      >
-      <div
-        v-if="playlist.creator.userId === data.user.userId"
-        class="item"
-        @click="deletePlaylist"
-        >删除歌单</div
-      >
-    </ContextMenu>
+      <div v-if="playlist.creator.userId === data.user.userId" class="item" @click="editPlaylist">编辑歌单信息</div>
+      <div v-if="playlist.creator.userId === data.user.userId" class="item" @click="deletePlaylist1">删除歌单</div>
+    </ContextMenu> -->
   </div>
 </template>
 
