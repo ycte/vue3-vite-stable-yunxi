@@ -1,3 +1,4 @@
+<!-- TODO: 此处代码书写规范程度不错，可以作为以后的参考 -->
 <script setup>
 import useStore from 'src/stores/store.js'
 import { computed, defineProps, ref } from 'vue'
