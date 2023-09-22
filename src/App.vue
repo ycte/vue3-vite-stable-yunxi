@@ -89,9 +89,9 @@ function fetchData() {
   
   <div id="root">
     <!-- <h1>hhhh</h1> -->
-    <RouterView style="width:100%;margin: 0,0,0,0;" />
+    <RouterView />
   </div>
-  <!-- <Player v-if="enablePlayer" v-show="showPlayer" ref="player" /> -->
+  <Player v-if="enablePlayer" v-show="showPlayer" />
   <NavBarButton v-show="showNavbar" />
 </template>
 

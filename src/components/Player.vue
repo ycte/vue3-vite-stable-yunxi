@@ -6,6 +6,7 @@ import useStore from 'src/stores/store'
 import ButtonIcon from 'src/components/ButtonIcon.vue'
 import { goToListSource, hasListSource } from 'src/utils/playList'
 import { formatTrackTime } from 'src/utils/common'
+import SvgIcon from './SvgIcon.vue'
 
 // import VueSlider from "vue-slider-component";
 // import '@/assets/css/slider.css';
@@ -13,9 +14,9 @@ const store = useStore()
 const route = useRoute()
 const router = useRouter()
 const { player, settings, data } = storeToRefs(useStore())
-console.log('>storeToRefs test:', player.value.player, settings.value)
+// console.log('>storeToRefs test:', player.value.player, settings.value)
 const currentTrack = computed(() => player.value.player.currentTrack)
-console.log('>currentTrack test:', currentTrack.value)
+// console.log('>currentTrack test:', currentTrack.value)
 // console.log('>store write test:', store.player.player.volume)
 const volume = computed({
   get() {
@@ -120,27 +121,43 @@ function mute() {
       <div class="controls">
         <div class="playing">
           <div class="container" @click.stop>
-            <img :src="currentTrack.value.al && currentTrack.value.al.picUrl" loading="lazy" @click="goToAlbum">
+            <img 
+              :src="currentTrack.al && currentTrack.al.picUrl" loading="lazy" 
+              @click="goToAlbum"
+            >
             <div class="track-info" :title="audioSource.value">
-              <div class="name" :class="[{ 'has-list': hasList() }]" @click="hasList() && goToList()">
+              <div 
+                class="name" :class="[{ 'has-list': hasList() }]" 
+                @click="hasList() && goToList()"
+              >
                 {{ currentTrack.name }}
               </div>
               <div class="artist">
-                <span v-for="(ar, index) in currentTrack.value.ar" :key="ar.id" @click="ar.id && goToArtist(ar.id)">
-                  <span :class="{ ar: ar.id }"> {{ ar.name }} </span><span v-if="index !== currentTrack.value.ar.length - 1">,
+                <span 
+                  v-for="(ar, index) in currentTrack.ar" :key="ar.id" 
+                  @click="ar.id && goToArtist(ar.id)"
+                >
+                  <span :class="{ ar: ar.id }"> {{ ar.name }} </span>
+                  <span v-if="index !== currentTrack.ar.length - 1">,
                   </span>
                 </span>
               </div>
             </div>
             <div class="like-button">
               <ButtonIcon 
-                :title="player.value.player.isCurrentTrackLiked
+                :title="player.player.isCurrentTrackLiked
                   ? $t('player.unlike')
                   : $t('player.like')
-                " @click="likeATrack(player.value.player.currentTrack.id)"
+                " @click="likeATrack(player.player.currentTrack.id)"
               >
-                <!-- <q-icon name="svguse:icons.svg#heart" v-show="!player.player.isCurrentTrackLiked" /> -->
-                <!-- <q-icon name="svguse:icons.svg#heart-solid" v-show="player.player.isCurrentTrackLiked" /> -->
+                <SvgIcon 
+                  v-show="!player.player.isCurrentTrackLiked" 
+                  name="heart" 
+                />
+                <SvgIcon 
+                  v-show="player.player.isCurrentTrackLiked" 
+                  name="heart-solid" 
+                />
               </ButtonIcon>
             </div>
           </div>
@@ -163,12 +180,22 @@ function mute() {
             @click="moveToFMTrash"
             ><svg-icon icon-class="thumbs-down"
           /></button-icon> -->
-            <ButtonIcon class="play" :title="$t(player.value.player.playing ? 'player.pause' : 'player.play')" @click="playOrPause">
-              <!-- <q-icon :name="ionPause" v-show="player.player.playing" class="svg-icon"></q-icon> -->
-              <!-- <q-icon :name="ionCaretForwardOutline" v-show="!player.player.playing" class="svg-icon"></q-icon> -->
+            <ButtonIcon 
+              class="play" 
+              :title="$t(player.player.playing ? 'player.pause' : 'player.play')" 
+              @click="playOrPause" 
+            >
+              <SvgIcon 
+                v-show="player.player.playing" name="pause" 
+                class="svg-icon" 
+              />
+              <SvgIcon 
+                v-show="!player.player.playing" 
+                name="play" class="svg-icon" 
+              />
             </ButtonIcon>
             <ButtonIcon :title="$t('player.next')" @click="playNextTrack">
-              <!-- <q-icon :name="ionPlayForward" class="svg-icon"></q-icon> -->
+              <SvgIcon name="forward" class="svg-icon" />
             </ButtonIcon>
           </div>
           <!-- <div class="blank"></div> -->
@@ -340,6 +367,7 @@ function mute() {
   .svg-icon {
     width: 24px;
     height: 24px;
+    margin-top: 10px;
   }
 
   .play {
