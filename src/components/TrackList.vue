@@ -1,3 +1,5 @@
+// TODO: 高亮当前播放
+
 <script setup>
 import { storeToRefs } from 'pinia'
 import { computed, defineProps, onMounted, ref } from 'vue'
@@ -245,7 +247,7 @@ function removeTrackFromCloudDisk() {
 
 <template>
   <div class="track-list">
-    <p>track-list</p>
+    <!-- <p>track-list</p> -->
     <!-- <ContextMenu ref="menu">
       <div v-show="type !== 'cloudDisk'" class="item-info">
         <img :src="rightClickedTrackComputed.al.picUrl" loading="lazy" />
@@ -290,7 +292,7 @@ function removeTrackFromCloudDisk() {
         :key="itemKey === 'id' ? track.id : `${track.id}${index}`"
         :track-prop="track" :track-no="index + 1" 
         :highlight-playing-track="highlightPlayingTrack"
-        @dblclick="playThisList(track.id || track.songId)" 
+        @click="playThisList(track.id || track.songId)" 
         @click.right="openMenu($event, track, index)" 
       />
     </div>

@@ -25,5 +25,4 @@ app.use(VueVirtualScroller)
 
 
 
-
 app.mount('#app')

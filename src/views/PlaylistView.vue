@@ -1,8 +1,10 @@
+// TODO: 更多菜单-Menu
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import NProgress from 'nprogress'
+import moment from 'moment'
 import useStore from '../stores/store'
 import SvgIcon from '../components/SvgIcon.vue'
 import {
@@ -172,15 +174,18 @@ const filteredTracks = computed(() => {
       ),
   )
 })
+const updatetimeFormat = computed(() => 
+  moment(playlist.value.updateTime).format('YYYY-MM-DD HH:mm'),
+)
 
 onMounted(() => {
-  if (route.name === 'likedSongs') 
+  if (route.name === 'likedSongs')
     loadData(data.value.likedSongPlaylistID)
-  else 
+  else
     loadData(route.params.id)
-  
+
   setTimeout(() => {
-    if (!show.value) 
+    if (!show.value)
       NProgress.start()
   }, 1000)
 })
@@ -229,7 +234,7 @@ function loadData(id, next = undefined) {
       playlist.value = data.playlist
       tracks.value = data.playlist.tracks
       NProgress.done()
-      if (next !== undefined) 
+      if (next !== undefined)
         next()
       show.value = true
       lastLoadedTrackIndex.value = data.playlist.tracks.length - 1
@@ -249,22 +254,22 @@ function loadMore(loadNum = 100) {
       index <= lastLoadedTrackIndex.value + loadNum
     ) return t
     // TODO: better way
-    return t  
+    return t
   })
   trackIDs = trackIDs.map(t => t.id)
   getTrackDetail(trackIDs.join(',')).then((data) => {
     tracks.value.push(...data.songs)
     lastLoadedTrackIndex.value += trackIDs.length
     loadingMore.value = false
-    if (lastLoadedTrackIndex.value + 1 === playlist.value.trackIds.length) 
+    if (lastLoadedTrackIndex.value + 1 === playlist.value.trackIds.length)
       hasMore.value = false
-    else 
+    else
       hasMore.value = true
   })
 }
+// TODO: what? $ref
 function openMenu(e) {
   openMenu(e)
-  // TODO: what?
   // this.$refs.playlistMenu.openMenu(e);
 }
 function deletePlaylist1() {
@@ -316,30 +321,26 @@ function inputDebounce() {
 }
 function toggleFullDescription() {
   showFullDescription.value = !showFullDescription.value
-  if (showFullDescription.value) 
+  if (showFullDescription.value)
     store.enableScrolling = false
-  else 
-    store.enableScrolling = true 
+  else
+    store.enableScrolling = true
 }
 </script>
 
 <template>
-  <span>playlist</span>
+  <!-- <span>playlist</span> -->
   <div v-show="show" class="playlist">
     <!-- !special-playlist -->
-    <div 
-      v-if="specialPlaylistInfo === undefined && !isLikeSongsPage" 
-      class="playlist-info"
-    >
-      <!-- <Cover 
-        :id="playlist.id" :image-url="playlist.coverImgUrl" 
-        :show-play-button="true" :always-show-shadow="true" 
-        :click-cover-to-play="true" :fixed-size="288" type="playlist" 
-        :cover-hover="false"
-        :play-button-size="18" @click.right="openMenu" 
-      /> -->
+    <div v-if="specialPlaylistInfo === undefined && !isLikeSongsPage" class="playlist-info">
+      <Cover 
+        :id="playlist.id" :image-url="playlist.coverImgUrl" :show-play-button="true" :always-show-shadow="true"
+        :click-cover-to-play="true" :fixed-size="200" type="playlist" 
+        :cover-hover="false" :play-button-size="18" class="cover"
+        style="margin-bottom: 60px;" @click.right="openMenu"
+      />
       <div class="info">
-        <div class="title" @click.right="openMenu">
+        <div class="title" @click="openMenu">
           <span v-if="playlist.privacy === 10" class="lock-icon">
             <SvgIcon name="lock" />
           </span>
@@ -347,41 +348,40 @@ function toggleFullDescription() {
         </div>
         <div class="artist">
           Playlist by
-          <span 
+          <span
             v-if="[
               5277771961, 5277965913, 5277969451, 5277778542, 5278068783,
-            ].includes(playlist.id)" 
-            style="font-weight: 600"
+            ].includes(playlist.id)" style="font-weight: 600"
           >Apple Music</span>
           <a 
-            v-else target="blank"
-            :href="`https://music.163.com/#/user/home?id=${playlist.creator.userId}`" 
+            v-else target="blank" style="color: #F04A3A;"
+            :href="`https://music.163.com/#/user/home?id=${playlist.creator.userId}`"
           >{{ playlist.creator.nickname }}</a>
         </div>
         <div class="date-and-count">
           {{ $t('playlist.updatedAt') }}
-          {{ playlist.updateTime }} · {{ playlist.trackCount }}
+          {{ updatetimeFormat }} · {{ playlist.trackCount }}
           {{ $t('common.songs') }}
         </div>
         <div class="description" @click="toggleFullDescription">
           {{ playlist.description }}
         </div>
         <div class="buttons">
-          <ButtonTwoTone icon-class="play" @click.="playPlaylistByID()">
+          <ButtonTwoTone 
+            icon-class="play" @click.="playPlaylistByID()" 
+            :background-color="1 === 1 ? '#FFDFDFDF' : ''"
+          >
             {{ $t('common.play') }}
           </ButtonTwoTone>
           <ButtonTwoTone 
             v-if="playlist.creator.userId !== data.user.userId"
-            :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'" 
-            :icon-button="true" :horizontal-padding="0"
-            :color="playlist.subscribed ? 'blue' : 'grey'" 
-            :text-color="playlist.subscribed ? '#335eea' : ''"
-            :background-color="playlist.subscribed ? 'var(--color-secondary-bg)' 
-              : ''" @click="likePlaylist"
+            :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'" :icon-button="true" :horizontal-padding="0"
+            :color="playlist.subscribed ? 'blue' : 'grey'" :text-color="playlist.subscribed ? '#F04A3A' : ''"
+            @click="likePlaylist" 
           />
           <ButtonTwoTone 
             icon-class="more" :icon-button="true" :horizontal-padding="0" 
-            color="grey" @click="openMenu"
+            color="grey" @click="openMenu" 
           />
         </div>
       </div>
@@ -389,22 +389,15 @@ function toggleFullDescription() {
         <div class="container" :class="{ active: inputFocus }">
           <SvgIcon name="search" />
           <div class="input">
-            <input 
-              v-model.trim="inputSearchKeyWords" v-focus 
-              :placeholder="inputFocus ? '' : $t('playlist.search')"
-              @input="inputDebounce()" @focus="inputFocus = true" 
-              @blur="inputFocus = false"
-            >
+            <input v-model.trim="inputSearchKeyWords" v-focus :placeholder="inputFocus ? '' : $t('playlist.search')"
+              @input="inputDebounce()" @focus="inputFocus = true" @blur="inputFocus = false">
           </div>
         </div>
       </div>
     </div>
     <!-- special-playlist -->
     <div v-if="specialPlaylistInfo !== undefined" class="special-playlist">
-      <div 
-        class="title" :class="specialPlaylistInfo.gradient" 
-        @click.right="openMenu"
-      >
+      <div class="title" :class="specialPlaylistInfo.gradient" @click.right="openMenu">
         <img :src="playlist.coverImgUrl">
         {{ specialPlaylistInfo.name }}
       </div>
@@ -412,26 +405,15 @@ function toggleFullDescription() {
         {{ playlist.englishTitle }} · {{ playlist.updateFrequency }}
       </div>
       <div class="buttons">
-        <ButtonTwoTone 
-          class="play-button" icon-class="play" color="grey" 
-          @click="playPlaylistByID()"
-        >
+        <ButtonTwoTone class="play-button" icon-class="play" color="grey" @click="playPlaylistByID()">
           {{ $t('common.play') }}
         </ButtonTwoTone>
-        <ButtonTwoTone 
-          v-if="playlist.creator.userId !== data.user.userId"
-          :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'" 
-          :icon-button="true" :horizontal-padding="0"
-          :color="playlist.subscribed ? 'blue' : 'grey'" 
-          :text-color="playlist.subscribed ? '#335eea' : ''"
-          :background-color="playlist.subscribed ? 'var(--color-secondary-bg)' 
-            : ''" @click.="likePlaylist"
-        />
-        <ButtonTwoTone 
-          icon-class="more" :icon-button="true" 
-          :horizontal-padding="0" color="grey"
-          @click.="openMenu"
-        />
+        <ButtonTwoTone v-if="playlist.creator.userId !== data.user.userId"
+          :icon-class="playlist.subscribed ? 'heart-solid' : 'heart'" :icon-button="true" :horizontal-padding="0"
+          :color="playlist.subscribed ? 'blue' : 'grey'" :text-color="playlist.subscribed ? '#335eea' : ''"
+          :background-color="playlist.subscribed ? 'var(--color-secondary-bg)'
+            : ''" @click.="likePlaylist" />
+        <ButtonTwoTone icon-class="more" :icon-button="true" :horizontal-padding="0" color="grey" @click.="openMenu" />
       </div>
     </div>
     <!-- likeSongs -->
@@ -444,12 +426,9 @@ function toggleFullDescription() {
         <div class="container" :class="{ active: inputFocus }">
           <SvgIcon name="search" />
           <div class="input" :style="{ width: searchInputWidth }">
-            <input 
-              v-if="displaySearchInPlaylist" v-model.trim="inputSearchKeyWords" 
-              v-focus :placeholder="inputFocus ? '' : $t('playlist.search')" 
-              @input="inputDebounce()" @focus="inputFocus = true"
-              @blur="inputFocus = false" 
-            >
+            <input v-if="displaySearchInPlaylist" v-model.trim="inputSearchKeyWords" v-focus
+              :placeholder="inputFocus ? '' : $t('playlist.search')" @input="inputDebounce()" @focus="inputFocus = true"
+              @blur="inputFocus = false">
           </div>
         </div>
       </div>
@@ -457,7 +436,7 @@ function toggleFullDescription() {
 
     <TrackList 
       :id="playlist.id" :tracks="filteredTracks" type="playlist" 
-      :extra-context-menu-item="isUserOwnPlaylist 
+      :extra-context-menu-item="isUserOwnPlaylist
         ? ['removeTrackFromPlaylist'] : []" 
     />
 
@@ -488,22 +467,27 @@ function toggleFullDescription() {
 <style lang="scss" scoped>
 .playlist {
   margin-top: 32px;
+  margin-left: 5px;
 }
 
 .playlist-info {
   display: flex;
   margin-bottom: 72px;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   position: relative;
 
   .info {
     display: flex;
+    align-items: center;
     flex-direction: column;
     justify-content: center;
     flex: 1;
-    margin-left: 56px;
+    // margin-left: 56px;
 
     .title {
-      font-size: 36px;
+      font-size: 21px;
       font-weight: 700;
       color: var(--color-text);
 
@@ -522,8 +506,9 @@ function toggleFullDescription() {
     .artist {
       font-size: 18px;
       opacity: 0.88;
-      color: var(--color-text);
-      margin-top: 24px;
+      // color: var(--color-text);
+
+      margin-top: 12px;
     }
 
     .date-and-count {
@@ -553,6 +538,7 @@ function toggleFullDescription() {
     .buttons {
       margin-top: 32px;
       display: flex;
+      color: #F04A3A;
 
       button {
         margin-right: 16px;

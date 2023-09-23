@@ -3,7 +3,9 @@ import { isNil } from 'lodash'
 import { computed, defineProps, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import moment from 'moment'
 import useStore from '../stores/store'
+import SvgIcon from './SvgIcon.vue'
 import ArtistsInLine from '@/components/ArtistsInLine.vue'
 import ExplicitSymbol from '@/components/ExplicitSymbol.vue'
 
@@ -122,7 +124,9 @@ const showAlbumName = computed(() =>
   type.value !== 'album' && type.value !== 'tracklist',
 )
 const showTrackTime = computed(() => type.value !== 'tracklist')
-
+const dtMoment = computed(() => {
+  return moment(track.value.dt).format('mm:ss')
+})
 function goToAlbum() {
   if (track.value.al.id === 0)
     return
@@ -150,11 +154,11 @@ function likeThisSong() {
     <img v-if="!isAlbum" :src="imgUrl" loading="lazy" :class="{ hover: focus }" @click="goToAlbum" />
     <div v-if="showOrderNumber" class="no">
       <button v-show="focus && playable && !isPlaying" @click="playTrack">
-        <svg-icon icon-class="play" style="height: 14px; width: 14px"></svg-icon>
+        <SvgIcon icon-class="play" style="height: 14px; width: 14px" />
       </button>
       <span v-show="(!focus || !playable) && !isPlaying">{{ trackNo }}</span>
       <button v-show="isPlaying">
-        <svg-icon icon-class="volume" style="height: 16px; width: 16px"></svg-icon>
+        <SvgIcon icon-class="volume" style="height: 16px; width: 16px" />
       </button>
     </div>
     <div class="title-and-artist">
@@ -181,23 +185,26 @@ function likeThisSong() {
       <div></div>
     </div>
 
-    <div v-if="showAlbumName" class="album">
+    <!-- <div v-if="showAlbumName" class="album">
       <router-link v-if="album && album.id" :to="`/album/${album.id}`">{{
         album.name
       }}</router-link>
       <div></div>
-    </div>
+    </div> -->
 
-    <div v-if="showLikeButton" class="actions">
+    <!-- <div v-if="showLikeButton" class="actions">
       <button @click="likeThisSong">
-        <svg-icon icon-class="heart" :style="{
-          visibility: focus && !isLiked ? 'visible' : 'hidden',
-        }"></svg-icon>
-        <svg-icon v-show="isLiked" icon-class="heart-solid"></svg-icon>
+        <SvgIcon 
+          name="heart" :style="{
+            visibility: focus && !isLiked ? 'visible' : 'hidden',
+          }" 
+        />
+        <SvgIcon v-show="isLiked" name="heart-solid" />
       </button>
-    </div>
+    </div> -->
     <div v-if="showTrackTime" class="time">
-      {{ track.dt }}
+      <!-- {{ track.dt }} -->
+      {{ dtMoment }}
     </div>
 
     <div v-if="track.playCount" class="count"> {{ track.playCount }}</div>

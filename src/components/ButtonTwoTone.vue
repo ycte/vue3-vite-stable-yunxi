@@ -23,7 +23,7 @@ export default {
     },
     backgroundColor: {
       type: String,
-      default: '',
+      default: '#FBECDE',
     },
     textColor: {
       type: String,
@@ -54,7 +54,10 @@ export default {
 
 <template>
   <button :style="buttonStyle" :class="color">
-    <SvgIcon v-if="iconClass !== null" name="iconClass" :style="{ marginRight: iconButton ? '0px' : '8px' }" />
+    <SvgIcon 
+      v-if="iconClass !== null" :name="iconClass" class="svg-icon"
+      :style="{ marginRight: iconButton ? '0px' : '8px' }" 
+    />
     <slot />
   </button>
 </template>
@@ -67,8 +70,9 @@ button {
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  line-height: 18px;
+  // line-height: 18px;
   font-weight: 600;
+  border: 1px solid var(--color-primary-bg);
   background-color: var(--color-primary-bg);
   color: var(--color-primary);
   margin-right: 12px;
@@ -76,6 +80,10 @@ button {
   user-select: none;
 
   .svg-icon {
+    // border-top: 10px;
+    // padding-top: 16px;
+    // margin-top: px;
+    // color: var(--color-primary-bg);
     width: 16px;
     height: 16px;
   }

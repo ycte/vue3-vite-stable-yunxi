@@ -17,30 +17,42 @@ import SvgIcon from './SvgIcon.vue'
         <!-- TODO: active nav -->
         <ButtonIcon :class="{ active: $route.name === 'home' }">
           <div class="navlink-item">
-            <SvgIcon name="caretForwardCircle" class="svg-icon" />
-            <router-link to="/" :class="{ active: $route.name === 'home' }">
+            <router-link 
+              to="/" :class="{ active: $route.name === 'home' }"
+            >
+              <SvgIcon 
+                name="caretForwardCircle" 
+                class="svg-icon" 
+                width="24px" height="24px"
+              />
               {{ $t("nav.home") }}
             </router-link>
           </div>
         </ButtonIcon>
         <ButtonIcon>
-          <div class="navlink-item">
-            <SvgIcon name="musicalNotes" class="svg-icon" />
+          <div class="navlink-item">  
             <router-link
               to="/explore"
               :class="{ active: $route.name === 'explore' }"
             >
+              <SvgIcon 
+                name="musicalNotes" class="svg-icon" 
+                width="24px" height="24px"
+              />
               {{ $t("nav.explore") }}
             </router-link>
           </div>
         </ButtonIcon>
         <ButtonIcon>
           <div class="navlink-item">
-            <SvgIcon name="albums" class="svg-icon" />
             <router-link
               to="/library"
               :class="{ active: $route.name === 'library' }"
             >
+              <SvgIcon 
+                name="albums" class="svg-icon"  
+                width="24px" height="24px"
+              />
               {{ $t("nav.library") }}
             </router-link>
           </div>
@@ -60,7 +72,7 @@ import SvgIcon from './SvgIcon.vue'
   height: 50px;
   backdrop-filter: saturate(180%) blur(30px);
   background-color: var(--color-navbar-bg);
-  background-color: rgba(255, 255, 255, 0.77);
+  background-color: rgba(255, 255, 255, 0.81);
 }
 .navigation-links {
   position: fixed;
@@ -99,11 +111,7 @@ import SvgIcon from './SvgIcon.vue'
     justify-content: center;
     flex-direction: column;
     align-items: center;
-    .q-icon {
-      margin-top: 7px;
-      width: 20px;
-      height: 20px;
-    }
+    color: grey
   }
 }
 a {
@@ -111,12 +119,12 @@ a {
   text-decoration: none;
 
   /* //文字颜色更改 */
-  color: black;
+  color: grey;
 }
 .router-link-exact-active {
-  color: black;
+  color: #F04A3A;
 }
 .router-link-active {
-  color: black;
+  color: #F04A3A;
 }
 </style>
